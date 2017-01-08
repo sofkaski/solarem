@@ -1,0 +1,31 @@
+{
+  "name": "solarem",
+  "version": "1.0.0",
+  "description": "Solar energy monotiring and control application",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sofkaski/solarem.git"
+  },
+  "keywords": [
+    "node-red",
+    "docker"
+  ],
+  "author": "Jyrki K",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/sofkaski/solarem/issues"
+  },
+  "homepage": "https://github.com/sofkaski/solarem#readme",
+  "devDependencies": {
+    "gulp": "^3.9.1",
+    "gulp-cli": "^1.2.2",
+    "gulp-htmlmin": "^2.0.0",
+    "gulp-jshint": "^2.0.1",
+    "jshint": "^2.9.2",
+    "jshint-stylish": "^2.2.0"
+  }
+}
