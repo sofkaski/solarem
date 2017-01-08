@@ -1,6 +1,7 @@
 var gulp = require('gulp');
 var jshint = require('gulp-jshint');
 var htmlmin = require('gulp-htmlmin');
+var exec = require('child_process').exec;
 
 gulp.task('default', function() {
   // place code for your default task here
@@ -14,6 +15,12 @@ gulp.task('node-red', function() {
     return gulp.src('node-red/*').pipe(gulp.dest('solarem/docker'))
 });
 
-gulp.task('docker', ['docker-source', 'node-red']);
+gulp.task('docker', ['docker-source', 'node-red'], function() {
+   exec('docker build -t sofkaski/solarem:1.0 solarem/docker', function(err) {
+      if (err) {
+         console.log(err);
+      }
+   });    
+});
 
 
