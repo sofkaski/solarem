@@ -1,0 +1,6 @@
+[submodule "node-red-contrib-modbus-rtu"]
+	path = node-red-contrib-modbus-rtu
+	url = https://github.com/sofkaski/node-red-contrib-modbus-rtu.git
+[submodule "Meter-EPR04"]
+	path = Meter-EPR04
+	url = https://github.com/sofkaski/Meter-EPR04.git
