@@ -48,4 +48,3 @@ jspm_packages
 
 # build output directory
 solarem/**
-solarem/docker/**
