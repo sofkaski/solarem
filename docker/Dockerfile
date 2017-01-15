@@ -9,8 +9,9 @@ COPY start-node-red.sh /root/.node-red/
 RUN chmod u+x /root/.node-red/start-node-red.sh
 COPY settings.js /root/.node-red/
 
-# Install node red
-RUN npm install -g --unsafe-perm node-red
+# Install node red and dashboard
+RUN npm install --unsafe-perm node-red
+RUN npm install node-red-dashboard
 
 # Install modbus-RTU and EPR modules
 COPY *.tgz /root/.node-red/
