@@ -1,0 +1,40 @@
+<script type="text/javascript">
+    RED.nodes.registerType('power-limit',{
+        category: 'modbus',
+        color: '#a6bbcf',
+        defaults: {
+            name: {value: "Name",required: true},
+            lower_limit: {value: "2", required: true, validate: RED.validators.number()},
+            upper_limit: {value: "1", required: true, validate: RED.validators.number()},
+            range: {value:"in", validate:RED.validators.regex('/[in|out|below|over]/') }
+        },
+        inputs:1,
+        outputs:1,
+        icon: "pwrlimitnode.png",
+        label: function() {
+            return this.name||"<undefined>";
+        }
+    });
+</script>
+
+<script type="text/x-red" data-template-name="power-limit">
+    <div class="form-row">
+        <label for="node-config-input-name"><i class="icon-bookmark"></i> Name for the node</label>
+        <input type="text" id="node-config-input-name">
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-lower_limit"><i class="icon-bookmark"></i> Power limit where the relay should go on</label>
+        <input type="text" id="node-config-input-lower_limit">
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-upper_limit"><i class="icon-bookmark"></i> Power limit where the relay should go off</label>
+        <input type="text" id="node-config-input-upper_limit">
+    </div>
+    <div class="form-row">
+        <label for="node-config-input-range"><i class="icon-bookmark"></i> Turn relay on in, out, below or over the range</label>
+        <input type="text" id="node-config-input-upper_limit">
+    </div>
+</script>
+<script type="text/x-red" data-help-name="power-limit">
+   <p>Node for controlling relays based on power limits.</p>
+</script>
