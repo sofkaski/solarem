@@ -1,130 +1,134 @@
-module.exports = function(RED) {
+/*jshint esversion: 6 */
 
-  var PowerState = {
+module.exports = function(RED) {
+  // Power status constants
+  const PS_UNDER_LIMIT = -1;
+  const PS_OVER_LIMIT = 1;
+  const PS_BETWEEN_LIMITS = 0;
+  // Relay status constants
+  const RS_UNDEFINED = -1;
+  const RS_ON = 0;
+  const RS_OFF = 1;
+
+  var PowerStatus = {
          UNDER_LIMIT: {fill:"green",shape:"dot",text:""},
          OVER_LIMIT: {fill:"red",shape:"dot",text:""},
          BETWEEN_LIMITS: {fill:"yellow",shape:"dot",text:""}
   };
-  var RelayState = {
-        UNDEFINED: -1,
-        ON: 0,
-        OFF: 1
+
+
+// Table to define new state of relay based on defined range type,
+// power state and relay current state. Only changing states are listed.
+  var states = {
+    "below":{
+      [PS_UNDER_LIMIT]: {
+        [RS_UNDEFINED]: RS_ON,
+        [RS_OFF]: RS_ON
+      },
+      [PS_BETWEEN_LIMITS]: {
+        [RS_UNDEFINED]: RS_OFF,
+        [RS_ON]: RS_OFF
+      },
+      [PS_OVER_LIMIT]: {
+        [RS_UNDEFINED]: RS_OFF,
+        [RS_ON]: RS_OFF
+      }
+    },
+    "over":{
+      [PS_UNDER_LIMIT]: {
+        [RS_UNDEFINED]: RS_OFF,
+        [RS_ON]: RS_OFF
+      },
+      [PS_BETWEEN_LIMITS]: {
+        [RS_UNDEFINED]: RS_OFF,
+        [RS_ON]: RS_OFF
+      },
+      [PS_OVER_LIMIT]: {
+        [RS_UNDEFINED]: RS_ON,
+        [RS_OFF]: RS_ON
+      }
+    },
+    "in":{
+      [PS_UNDER_LIMIT]: {
+        [RS_UNDEFINED]: RS_OFF,
+        [RS_ON]: RS_OFF
+      },
+      [PS_BETWEEN_LIMITS]: {
+        [RS_UNDEFINED]: RS_ON,
+        [RS_OFF]: RS_ON
+      },
+      [PS_OVER_LIMIT]: {
+        [RS_UNDEFINED]: RS_OFF,
+        [RS_ON]: RS_OFF
+      }
+    },
+    "out":{
+      [PS_UNDER_LIMIT]: {
+        [RS_UNDEFINED]: RS_ON,
+        [RS_OFF]: RS_ON
+      },
+      [PS_BETWEEN_LIMITS]: {
+        [RS_UNDEFINED]: RS_OFF,
+        [RS_ON]: RS_OFF
+      },
+      [PS_OVER_LIMIT]: {
+        [RS_UNDEFINED]: RS_ON,
+        [RS_OFF]: RS_ON
+      },
+    }
   };
-
-  function State(ranges) {
-    this.ranges = ranges;
-  }
-  function Range(rangeName, powerStates) {
-    this.rangeName = rangeName;
-    this.powerStates = powerStates;
-  }
-  function PwrState(state, relayStates) {
-    this.state = state;
-    this.relayStates = relayStates;
-  }
-  function RelayStatus(relayState, newRelayStates) {
-    this.relayState = relayState;
-    this.newRelayStates = newRelayStates;
-  }
-
-  var state = new State(
-    [new Range("below",
-      [new PwrState(PowerState.UNDER_LIMIT,
-        [new RelayStatus(RelayState.UNDEFINED,RelayStatus.ON),
-         new RelayStatus(RelayState.OFF,RelayState.ON)]
-        )],
-      [new PwrState(PowerState.BETWEEN_LIMITS,
-        [new RelayStatus(RelayState.UNDEFINED,RelayState.OFF),
-         new RelayStatus(RelayState.ON,RelayState.OFF)]
-        )],
-      [new PwrState(PowerState.OVER_LIMIT,
-        [new RelayStatus(RelayState.UNDEFINED,RelayState.OFF),
-         new RelayStatus(RelayState.ON,RelayState.OFF)]
-        )]),
-      new Range("over",
-        [new PwrState(PowerState.UNDER_LIMIT,
-          [new RelayStatus(RelayState.UNDEFINED,RelayState.OFF),
-           new RelayStatus(RelayState.ON,RelayState.OFF)]
-        )],
-        [new PwrState(PowerState.BETWEEN_LIMITS,
-          [new RelayStatus(RelayState.UNDEFINED,RelayState.OFF),
-           new RelayStatus(RelayState.ON,RelayState.OFF)]
-        )],
-        [new PwrState(PowerState.OVER_LIMIT,
-          [new RelayStatus(RelayState.UNDEFINED,RelayState.ON),
-           new RelayStatus(RelayState.OFF,RelayState.ON)]
-        )]),
-        new Range("in",
-          [new PwrState(PowerState.UNDER_LIMIT,
-            [new RelayStatus(RelayState.UNDEFINED,RelayState.OFF),
-             new RelayStatus(RelayState.ON,RelayState.OFF)]
-          )],
-          [new PwrState(PowerState.BETWEEN_LIMITS,
-            [new RelayStatus(RelayState.UNDEFINED,RelayState.ON),
-             new RelayStatus(RelayState.OFF,RelayState.ON)]
-          )],
-          [new PwrState(PowerState.OVER_LIMIT,
-            [new RelayStatus(RelayState.UNDEFINED,RelayState.OFF),
-             new RelayStatus(RelayState.ON,RelayState.OFF)]
-          )]),
-          new Range("out",
-            [new PwrState(PowerState.UNDER_LIMIT,
-              [new RelayStatus(RelayState.UNDEFINED,RelayState.ON),
-               new RelayStatus(RelayState.OFF,RelayState.ON)]
-            )],
-            [new PwrState(PowerState.BETWEEN_LIMITS,
-              [new RelayStatus(RelayState.UNDEFINED,RelayState.OFF),
-               new RelayStatus(RelayState.ON,RelayState.OFF)]
-            )],
-            [new PwrState(PowerState.OVER_LIMIT,
-              [new RelayStatus(RelayState.UNDEFINED,RelayState.ON),
-               new RelayStatus(RelayState.OFF,RelayState.ON)]
-            )])]);
 
 
   function powerLimitNode(config) {
       var log = RED.log;
-      var vsprintf = require("sprintf-js").vsprintf;
 
       RED.nodes.createNode(this,config);
       this.name = config.name;
       this.lower_limit = parseInt(config.lower_limit);
       this.upper_limit = parseInt(config.upper_limit);
       this.range = config.range;
+      var node = this;
       log.info("Created power limit node " + this.name + " successfully.");
 
 
       this.on('input', function(msg) {
+          log.info('topic: ' + msg.topic);
+
           if (msg.topic.indexOf("Power") >= 0) {
-            var REGISTER = global.get('epr04sregisters').REGISTER;
-            var newState = RelayState.UNDEFINED;
-            var powerState = PowerState.UNDER_LIMIT;
+            var newState = RS_UNDEFINED;
+            var powerState = PS_UNDER_LIMIT;
+            var powerStatus = PowerStatus.UNDER_LIMIT;
             var power = parseFloat(msg.payload);
-            if (power < this.lower_limit) {
-              powerState = PowerState.UNDER_LIMIT;
-              powerState.text = power.toString() + " < " + this.lower_limit.toString();
-              newState = newRelayState(powerState, range);
+            if (power < node.lower_limit) {
+              powerState = PS_UNDER_LIMIT;
+              powerStatus = PowerStatus.UNDER_LIMIT;
+              powerStatus.text = power.toString() + " < " + node.lower_limit.toString();
+              newState = newRelayState(powerState, node);
             }
             else if (power > this.upper_limit) {
-              powerState = PowerState.OVER_LIMIT;
-              powerState.text = power.toString() + " > " + this.upper_limit.toString();
-              newState = newRelayState(powerState, range);
+              powerState = PS_OVER_LIMIT;
+              powerStatus = PowerStatus.OVER_LIMIT;
+              powerStatus.text = power.toString() + " > " + node.upper_limit.toString();
+              newState = newRelayState(powerState, node);
             }
             else {
-              powerState = PowerState.BETWEEN_LIMITS;
-              powerState.text = this.lower_limit.toString() + " <= " + power.toString() + " < " + this.upper_limit.toString();
-              newState = newRelayState(powerState, range);
+              powerState = PS_BETWEEN_LIMITS;
+              powerStatus = PowerStatus.BETWEEN_LIMITS;
+              powerStatus.text = node.lower_limit.toString() + " <= " + power.toString() + " < " + node.upper_limit.toString();
+              newState = newRelayState(powerState, node);
             }
+            log.info('newState: ' + newState);
+            node.status(powerStatus);
 
-            node.status(powerState);
-
-            if (newState !== RelayState.UNDEFINED) {
-              this.context().set('relayState', newState);
+            if (newState !== RS_UNDEFINED) {
+              log.info('setting new state for relay');
+              node.context().set('relayState', newState);
               msg.topic = "powerLimit";
               msg.payload = newState;
-              return [msg];
+              node.send([msg]);
             }
             else {
+              log.info('No change');
               return null;
             }
           }
@@ -134,16 +138,17 @@ module.exports = function(RED) {
           }
       });
 
-    function newRelayState(powerState, range) {
-      var relayState = this.context().get('relayState') || RelayState.UNDEFINED;
-      var newState = RelayState.UNDEFINED;
-      if (range in states) {
-        if (powerState in states[range]) {
-          if (relayState in states[range][powerState]) {
-            newState = states[range][powerState][relayState];
+    function newRelayState(powerState, node) {
+      var relayState = node.context().get('relayState') || RS_UNDEFINED;
+      var newState = RS_UNDEFINED;
+      if (node.range in states) {
+        if (powerState in states[node.range]) {
+          if (relayState in states[node.range][powerState]) {
+            newState = states[node.range][powerState][relayState];
           }
         }
       }
+      return newState;
     }
   }
   RED.nodes.registerType("power-limit",powerLimitNode);

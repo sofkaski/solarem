@@ -6,7 +6,7 @@
             name: {value: "Name",required: true},
             lower_limit: {value: "2", required: true, validate: RED.validators.number()},
             upper_limit: {value: "1", required: true, validate: RED.validators.number()},
-            range: {value:"in", validate:RED.validators.regex('/[in|out|below|over]/') }
+            range: {value:"in", validate:RED.validators.regex(/[in|out|below|over]/) }
         },
         inputs:1,
         outputs:1,
@@ -19,22 +19,29 @@
 
 <script type="text/x-red" data-template-name="power-limit">
     <div class="form-row">
-        <label for="node-config-input-name"><i class="icon-bookmark"></i> Name for the node</label>
-        <input type="text" id="node-config-input-name">
+        <label for="node-input-name"><i class="icon-bookmark"></i> Name for the node</label>
+        <input type="text" id="node-input-name">
     </div>
     <div class="form-row">
-        <label for="node-config-input-lower_limit"><i class="icon-bookmark"></i> Power limit where the relay should go on</label>
-        <input type="text" id="node-config-input-lower_limit">
+        <label for="node-input-lower_limit"><i class="icon-bookmark"></i> Lower power limit</label>
+        <input type="text" id="node-input-lower_limit">
     </div>
     <div class="form-row">
-        <label for="node-config-input-upper_limit"><i class="icon-bookmark"></i> Power limit where the relay should go off</label>
-        <input type="text" id="node-config-input-upper_limit">
+        <label for="node-input-upper_limit"><i class="icon-bookmark"></i> Upper power limit</label>
+        <input type="text" id="node-input-upper_limit">
     </div>
     <div class="form-row">
-        <label for="node-config-input-range"><i class="icon-bookmark"></i> Turn relay on in, out, below or over the range</label>
-        <input type="text" id="node-config-input-upper_limit">
+        <label for="node-input-range"><i class="icon-bookmark"></i> Turn relay on in, out, below or over the range lower->higher</label>
+        <input type="text" id="node-input-upper_limit" placeholder="in">
     </div>
 </script>
 <script type="text/x-red" data-help-name="power-limit">
    <p>Node for controlling relays based on power limits.</p>
+   <p>Set lower and higher power limits in Watts. Use 'in', 'out', 'below' or 'over' to specify how the relay should be turned on.</p>
+   <ul>
+   <li>'in':  relay is turned on when the power is in given range</li>
+   <li>'out':  relay is turned on when the power is outside given range</li>
+   <li>'below':  relay is turned on when the power is below lower limit</li>
+   <li>'over':  relay is turned on when the power is over upper limit</li>
+  </ul>
 </script>
