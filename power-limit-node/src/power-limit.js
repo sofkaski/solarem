@@ -88,11 +88,8 @@ module.exports = function(RED) {
       this.upper_limit = parseInt(config.upper_limit);
       this.range = config.range;
       var node = this;
-      log.info("Created power limit node " + this.name + " successfully.");
-
 
       this.on('input', function(msg) {
-          log.info('topic: ' + msg.topic);
 
           if (msg.topic.indexOf("Power") >= 0) {
             var newState = RS_UNDEFINED;
@@ -117,18 +114,15 @@ module.exports = function(RED) {
               powerStatus.text = node.lower_limit.toString() + " <= " + power.toString() + " < " + node.upper_limit.toString();
               newState = newRelayState(powerState, node);
             }
-            log.info('newState: ' + newState);
             node.status(powerStatus);
 
             if (newState !== RS_UNDEFINED) {
-              log.info('setting new state for relay');
               node.context().set('relayState', newState);
               msg.topic = "powerLimit";
               msg.payload = newState;
               node.send([msg]);
             }
             else {
-              log.info('No change');
               return null;
             }
           }
