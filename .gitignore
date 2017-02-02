@@ -50,4 +50,4 @@ jspm_packages
 solarem/**
 
 # build output directory in power limit node
-power-limit-node/power-limit-node
+power-limit-node/power-limit/**
