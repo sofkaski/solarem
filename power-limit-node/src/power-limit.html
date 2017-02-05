@@ -6,11 +6,12 @@
             name: {value: "Name",required: true},
             lower_limit: {value: "2", required: true, validate: RED.validators.number()},
             upper_limit: {value: "1", required: true, validate: RED.validators.number()},
-            range: {value:"in", validate:RED.validators.regex(/[in|out|below|over]/) }
+            range: {value:"in", validate:RED.validators.regex(/[in|out|below|over]/) },
+            initial_mode: {value:"auto", validate:RED.validators.regex(/[auto|manual]/) }
         },
         inputs:1,
         outputs:1,
-        icon: "pwrlimitnode.png",
+        icon: "pwrlimitnode1.png",
         label: function() {
             return this.name||"<undefined>";
         }
@@ -32,7 +33,11 @@
     </div>
     <div class="form-row">
         <label for="node-input-range"><i class="icon-bookmark"></i> Turn relay on in, out, below or over the range lower->higher</label>
-        <input type="text" id="node-input-upper_limit" placeholder="in">
+        <input type="text" id="node-input-range" placeholder="in">
+    </div>
+    <div class="form-row">
+        <label for="node-input-initial_mode"><i class="icon-bookmark"></i> Intial mode auto or manual</label>
+        <input type="text" id="node-input-initial_mode" placeholder="in">
     </div>
 </script>
 <script type="text/x-red" data-help-name="power-limit">

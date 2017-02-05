@@ -2,135 +2,199 @@
 
 module.exports = function(RED) {
   // Power status constants
-  const PS_UNDER_LIMIT = -1;
-  const PS_OVER_LIMIT = 1;
-  const PS_BETWEEN_LIMITS = 0;
+  const PS_UNDEFINED = -1;
+  const PS_UNDER_LIMIT = 1;
+  const PS_OVER_LIMIT = 2;
+  const PS_BETWEEN_LIMITS = 3;
   // Relay status constants
   const RS_UNDEFINED = -1;
   const RS_ON = 0;
   const RS_OFF = 1;
+  // Operation modes
+  const OPERATION_UNDEFINED = 0;
+  const OPERATION_MANUAL = 1;
+  const OPERATION_AUTO = 2;
 
-  var PowerStatus = {
-         UNDER_LIMIT: {fill:"green",shape:"dot",text:""},
-         OVER_LIMIT: {fill:"red",shape:"dot",text:""},
-         BETWEEN_LIMITS: {fill:"yellow",shape:"dot",text:""}
+  var RelayStatus = {
+    OFF: {
+      fill: "green",
+      shape: "dot",
+      text: ""
+    },
+    ON: {
+      fill: "red",
+      shape: "dot",
+      text: ""
+    },
+    UNDEFINED: {
+      fill: "yellow",
+      shape: "ring",
+      text: ""
+    }
   };
 
-
-// Table to define new state of relay based on defined range type,
-// power state and relay current state. Only changing states are listed.
+  // Table to define new state of relay based on defined range type,
+  // power state and relay current state. Only changing states are listed.
   var states = {
-    "below":{
+    "below": {
       [PS_UNDER_LIMIT]: {
-        [RS_UNDEFINED]: RS_ON,
-        [RS_OFF]: RS_ON
-      },
-      [PS_BETWEEN_LIMITS]: {
-        [RS_UNDEFINED]: RS_OFF,
-        [RS_ON]: RS_OFF
-      },
-      [PS_OVER_LIMIT]: {
-        [RS_UNDEFINED]: RS_OFF,
-        [RS_ON]: RS_OFF
+        [RS_UNDEFINED]: RS_ON, [RS_OFF]: RS_ON
+      }, [PS_BETWEEN_LIMITS]: {
+        [RS_UNDEFINED]: RS_OFF, [RS_ON]: RS_OFF
+      }, [PS_OVER_LIMIT]: {
+        [RS_UNDEFINED]: RS_OFF, [RS_ON]: RS_OFF
       }
     },
-    "over":{
+    "over": {
       [PS_UNDER_LIMIT]: {
-        [RS_UNDEFINED]: RS_OFF,
-        [RS_ON]: RS_OFF
-      },
-      [PS_BETWEEN_LIMITS]: {
-        [RS_UNDEFINED]: RS_OFF,
-        [RS_ON]: RS_OFF
-      },
-      [PS_OVER_LIMIT]: {
-        [RS_UNDEFINED]: RS_ON,
-        [RS_OFF]: RS_ON
+        [RS_UNDEFINED]: RS_OFF, [RS_ON]: RS_OFF
+      }, [PS_BETWEEN_LIMITS]: {
+        [RS_UNDEFINED]: RS_OFF, [RS_ON]: RS_OFF
+      }, [PS_OVER_LIMIT]: {
+        [RS_UNDEFINED]: RS_ON, [RS_OFF]: RS_ON
       }
     },
-    "in":{
+    "in": {
       [PS_UNDER_LIMIT]: {
-        [RS_UNDEFINED]: RS_OFF,
-        [RS_ON]: RS_OFF
-      },
-      [PS_BETWEEN_LIMITS]: {
-        [RS_UNDEFINED]: RS_ON,
-        [RS_OFF]: RS_ON
-      },
-      [PS_OVER_LIMIT]: {
-        [RS_UNDEFINED]: RS_OFF,
-        [RS_ON]: RS_OFF
+        [RS_UNDEFINED]: RS_OFF, [RS_ON]: RS_OFF
+      }, [PS_BETWEEN_LIMITS]: {
+        [RS_UNDEFINED]: RS_ON, [RS_OFF]: RS_ON
+      }, [PS_OVER_LIMIT]: {
+        [RS_UNDEFINED]: RS_OFF, [RS_ON]: RS_OFF
       }
     },
-    "out":{
+    "out": {
       [PS_UNDER_LIMIT]: {
-        [RS_UNDEFINED]: RS_ON,
-        [RS_OFF]: RS_ON
-      },
-      [PS_BETWEEN_LIMITS]: {
-        [RS_UNDEFINED]: RS_OFF,
-        [RS_ON]: RS_OFF
-      },
-      [PS_OVER_LIMIT]: {
-        [RS_UNDEFINED]: RS_ON,
-        [RS_OFF]: RS_ON
+        [RS_UNDEFINED]: RS_ON, [RS_OFF]: RS_ON
+      }, [PS_BETWEEN_LIMITS]: {
+        [RS_UNDEFINED]: RS_OFF, [RS_ON]: RS_OFF
+      }, [PS_OVER_LIMIT]: {
+        [RS_UNDEFINED]: RS_ON, [RS_OFF]: RS_ON
       },
     }
   };
 
 
   function powerLimitNode(config) {
-      var log = RED.log;
+    var log = RED.log;
 
-      RED.nodes.createNode(this,config);
-      this.name = config.name;
-      this.lower_limit = parseInt(config.lower_limit);
-      this.upper_limit = parseInt(config.upper_limit);
-      this.range = config.range;
-      var node = this;
+    RED.nodes.createNode(this, config);
+    this.name = config.name;
+    this.lower_limit = parseInt(config.lower_limit);
+    this.upper_limit = parseInt(config.upper_limit);
+    this.range = config.range.toLowerCase();
+    this.initial_mode = config.initial_mode.toLowerCase();
+    var node = this;
+    var limitText = "Criteria: ";
+    var modeText = "";
+    switch (this.range) {
+      case "in":
+        limitText += 'inside range [' + this.lower_limit + '-' + this.upper_limit + ']';
+        break;
+      case "out":
+        limitText += 'outside range (' + this.lower_limit + '-' + this.upper_limit + ')';
+        break;
+      case "above":
+        limitText += 'over ' + this.upper_limit;
+        break;
+      case "below":
+        limitText += 'below ' + this.lower_limit;
+        break;
+    }
 
-      this.on('input', function(msg) {
+    switch (this.initial_mode) {
+      case 'manual':
+        this.context().set("OperationMode", OPERATION_MANUAL);
+        modeText = 'Mode: manual';
+        break;
+      case 'auto':
+        this.context().set("OperationMode", OPERATION_AUTO);
+        modeText = 'Mode: auto';
+        break;
+    }
 
-          if (msg.topic.indexOf("Power") >= 0) {
-            var newState = RS_UNDEFINED;
-            var powerState = PS_UNDER_LIMIT;
-            var powerStatus = PowerStatus.UNDER_LIMIT;
-            var power = parseFloat(msg.payload);
-            if (power < node.lower_limit) {
-              powerState = PS_UNDER_LIMIT;
-              powerStatus = PowerStatus.UNDER_LIMIT;
-              powerStatus.text = power.toString() + " < " + node.lower_limit.toString();
-              newState = newRelayState(powerState, node);
-            }
-            else if (power > this.upper_limit) {
-              powerState = PS_OVER_LIMIT;
-              powerStatus = PowerStatus.OVER_LIMIT;
-              powerStatus.text = power.toString() + " > " + node.upper_limit.toString();
-              newState = newRelayState(powerState, node);
-            }
-            else {
-              powerState = PS_BETWEEN_LIMITS;
-              powerStatus = PowerStatus.BETWEEN_LIMITS;
-              powerStatus.text = node.lower_limit.toString() + " <= " + power.toString() + " < " + node.upper_limit.toString();
-              newState = newRelayState(powerState, node);
-            }
-            node.status(powerStatus);
+    setNodeStatus(this, "-", limitText);
 
-            if (newState !== RS_UNDEFINED) {
-              node.context().set('relayState', newState);
-              msg.topic = "powerLimit";
-              msg.payload = newState;
-              node.send([msg]);
-            }
-            else {
-              return null;
-            }
+    this.on('input', function(msg) {
+      var operationMode = node.context().get('OperationMode') || OPERATION_AUTO;
+      var newState = RS_UNDEFINED;
+      var powerState = PS_UNDEFINED;
+      var rStatus = null;
+      if (msg.topic.indexOf("Power") >= 0) {
+        var power = parseFloat(msg.payload);
+        if (operationMode === OPERATION_AUTO) {
+          log.info('Power message in auto mode "' + msg.topic + '": ' + msg.payload);
+          newState = RS_UNDEFINED;
+          powerState = PS_UNDER_LIMIT;
+          if (power < node.lower_limit) {
+            powerState = PS_UNDER_LIMIT;
+            newState = newRelayState(powerState, node);
+          } else if (power > this.upper_limit) {
+            powerState = PS_OVER_LIMIT;
+            newState = newRelayState(powerState, node);
+          } else {
+            powerState = PS_BETWEEN_LIMITS;
+            newState = newRelayState(powerState, node);
           }
-          else {
-              log.warn('Unknown input message received with topic "' + msg.topic +'"');
-              return msg;
+
+          if (newState !== RS_UNDEFINED) {
+            node.context().set('relayState', newState);
+            setNodeStatus(node, power, limitText);
+            msg.topic = "RelayControl";
+            msg.payload = newState;
+            node.send(msg);
+          } else {
+            // no change in state
+            setNodeStatus(node, power, limitText);
+            return null;
           }
-      });
+        } else {
+          log.info('Power message in manual mode "' + msg.topic + '": ' +
+            msg.payload);
+          return null;
+        }
+      } else if (msg.topic.indexOf("Mode") >= 0) {
+        log.info('Mode change message "' + msg.payload + '"');
+        switch (msg.payload.toLowerCase()) {
+          case 'manual':
+            this.context().set("OperationMode", OPERATION_MANUAL);
+            break;
+          case 'auto':
+            this.context().set("OperationMode", OPERATION_AUTO);
+            break;
+        }
+        setNodeStatus(node, "-", limitText);
+        return null;
+
+      } else if (msg.topic.indexOf("ManualControl") >= 0) {
+        if (operationMode === OPERATION_MANUAL) {
+          newState = RS_UNDEFINED;
+          switch (msg.payload) {
+            case 'on':
+              newState = RS_ON;
+              break;
+            case 'off':
+              newState = RS_OFF;
+              break;
+          }
+          var currentState = node.context().get('relayState');
+          if (currentState !== newState) {
+            node.context().set('relayState', newState);
+            setNodeStatus(node, "-", limitText);
+            msg.topic = "RelayControl";
+            msg.payload = newState;
+            node.send(msg);
+          } else {
+            return null;
+          }
+        } else {
+          return null;
+        }
+      } else {
+        log.warn('Unknown input message received with topic "' + msg.topic + '": ' + msg.payload);
+        return null;
+      }
+    });
 
     function newRelayState(powerState, node) {
       var relayState = node.context().get('relayState') || RS_UNDEFINED;
@@ -145,5 +209,35 @@ module.exports = function(RED) {
       return newState;
     }
   }
-  RED.nodes.registerType("power-limit",powerLimitNode);
+  RED.nodes.registerType("power-limit", powerLimitNode);
+
+  function setNodeStatus(node, power, limitText) {
+    var state = node.context().get('relayState') || RS_UNDEFINED;
+    var operationMode = node.context().get('OperationMode') || OPERATION_UNDEFINED;
+    switch (state) {
+      case RS_ON:
+        rStatus = RelayStatus.ON;
+        break;
+      case RS_OFF:
+        rStatus = RelayStatus.OFF;
+        break;
+      case RS_UNDEFINED:
+        rStatus = RelayStatus.UNDEFINED;
+        break;
+    }
+    var modeText = "?";
+    switch (operationMode) {
+      case OPERATION_MANUAL:
+        modeText = 'Mode: manual';
+        break;
+      case OPERATION_AUTO:
+        modeText = 'Mode: auto';
+        break;
+      case RS_UNDEFINED:
+        break;
+    }
+    rStatus.text = limitText + ' ' + modeText + '. Power: ' + power;
+    node.status(rStatus);
+  }
+
 };
