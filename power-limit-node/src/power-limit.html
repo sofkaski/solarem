@@ -6,8 +6,8 @@
             name: {value: "Name",required: true},
             lower_limit: {value: "2", required: true, validate: RED.validators.number()},
             upper_limit: {value: "1", required: true, validate: RED.validators.number()},
-            range: {value:"in", validate:RED.validators.regex(/[in|out|below|over]/) },
-            initial_mode: {value:"auto", validate:RED.validators.regex(/[auto|manual]/) }
+            range: {value:"in", validate:RED.validators.regex(/(in|out|below|above)/) },
+            initial_mode: {value:"auto", validate:RED.validators.regex(/(auto|manual)/) }
         },
         inputs:1,
         outputs:1,
@@ -32,7 +32,7 @@
         <input type="text" id="node-input-upper_limit">
     </div>
     <div class="form-row">
-        <label for="node-input-range"><i class="icon-bookmark"></i> Turn relay on in, out, below or over the range lower->higher</label>
+        <label for="node-input-range"><i class="icon-bookmark"></i> Turn relay on in, out, below or above the range lower->higher</label>
         <input type="text" id="node-input-range" placeholder="in">
     </div>
     <div class="form-row">
@@ -42,11 +42,11 @@
 </script>
 <script type="text/x-red" data-help-name="power-limit">
    <p>Node for controlling relays based on power limits.</p>
-   <p>Set lower and higher power limits in Watts. Use 'in', 'out', 'below' or 'over' to specify how the relay should be turned on.</p>
+   <p>Set lower and higher power limits in Watts. Use 'in', 'out', 'below' or 'above' to specify how the relay should be turned on.</p>
    <ul>
    <li>'in':  relay is turned on when the power is in given range</li>
    <li>'out':  relay is turned on when the power is outside given range</li>
    <li>'below':  relay is turned on when the power is below lower limit</li>
-   <li>'over':  relay is turned on when the power is over upper limit</li>
+   <li>'above':  relay is turned on when the power is above upper limit</li>
   </ul>
 </script>

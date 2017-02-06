@@ -45,7 +45,7 @@ module.exports = function(RED) {
         [RS_UNDEFINED]: RS_OFF, [RS_ON]: RS_OFF
       }
     },
-    "over": {
+    "above": {
       [PS_UNDER_LIMIT]: {
         [RS_UNDEFINED]: RS_OFF, [RS_ON]: RS_OFF
       }, [PS_BETWEEN_LIMITS]: {
@@ -95,7 +95,7 @@ module.exports = function(RED) {
         limitText += 'outside range (' + this.lower_limit + '-' + this.upper_limit + ')';
         break;
       case "above":
-        limitText += 'over ' + this.upper_limit;
+        limitText += 'above ' + this.upper_limit;
         break;
       case "below":
         limitText += 'below ' + this.lower_limit;
@@ -112,29 +112,21 @@ module.exports = function(RED) {
         modeText = 'Mode: auto';
         break;
     }
-
+    this.context().set('relayState', RS_UNDEFINED);
     setNodeStatus(this, "-", limitText);
 
     this.on('input', function(msg) {
       var operationMode = node.context().get('OperationMode') || OPERATION_AUTO;
       var newState = RS_UNDEFINED;
-      var powerState = PS_UNDEFINED;
-      var rStatus = null;
       if (msg.topic.indexOf("Power") >= 0) {
         var power = parseFloat(msg.payload);
         if (operationMode === OPERATION_AUTO) {
-          log.info('Power message in auto mode "' + msg.topic + '": ' + msg.payload);
-          newState = RS_UNDEFINED;
-          powerState = PS_UNDER_LIMIT;
           if (power < node.lower_limit) {
-            powerState = PS_UNDER_LIMIT;
-            newState = newRelayState(powerState, node);
+            newState = newRelayState(PS_UNDER_LIMIT, node);
           } else if (power > this.upper_limit) {
-            powerState = PS_OVER_LIMIT;
-            newState = newRelayState(powerState, node);
+            newState = newRelayState(PS_OVER_LIMIT, node);
           } else {
-            powerState = PS_BETWEEN_LIMITS;
-            newState = newRelayState(powerState, node);
+            newState = newRelayState(PS_BETWEEN_LIMITS, node);
           }
 
           if (newState !== RS_UNDEFINED) {
@@ -149,12 +141,9 @@ module.exports = function(RED) {
             return null;
           }
         } else {
-          log.info('Power message in manual mode "' + msg.topic + '": ' +
-            msg.payload);
           return null;
         }
       } else if (msg.topic.indexOf("Mode") >= 0) {
-        log.info('Mode change message "' + msg.payload + '"');
         switch (msg.payload.toLowerCase()) {
           case 'manual':
             this.context().set("OperationMode", OPERATION_MANUAL);
@@ -196,23 +185,28 @@ module.exports = function(RED) {
       }
     });
 
-    function newRelayState(powerState, node) {
-      var relayState = node.context().get('relayState') || RS_UNDEFINED;
-      var newState = RS_UNDEFINED;
-      if (node.range in states) {
-        if (powerState in states[node.range]) {
-          if (relayState in states[node.range][powerState]) {
-            newState = states[node.range][powerState][relayState];
-          }
-        }
-      }
-      return newState;
-    }
+    this.on('close', function() {
+      node.context().set('relayState', RS_UNDEFINED);
+      node.context().set('OperationMode', OPERATION_UNDEFINED);
+    });
   }
   RED.nodes.registerType("power-limit", powerLimitNode);
 
+  function newRelayState(powerState, node) {
+    var relayState = node.context().get('relayState') || RS_UNDEFINED;
+    var newState = RS_UNDEFINED;
+    if (node.range in states) {
+      if (powerState in states[node.range]) {
+        if (relayState in states[node.range][powerState]) {
+          newState = states[node.range][powerState][relayState];
+        }
+      }
+    }
+    return newState;
+  }
+
   function setNodeStatus(node, power, limitText) {
-    var state = node.context().get('relayState') || RS_UNDEFINED;
+    var state = node.context().get('relayState');
     var operationMode = node.context().get('OperationMode') || OPERATION_UNDEFINED;
     switch (state) {
       case RS_ON:
