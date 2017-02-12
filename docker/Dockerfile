@@ -13,9 +13,10 @@ COPY settings.js /root/.node-red/
 RUN npm install --unsafe-perm node-red
 RUN npm install node-red-dashboard
 
-# Install modbus-RTU and EPR modules
+# Install modbus-RTU, EPR and power limit modules
 COPY *.tgz /root/.node-red/
 RUN npm i node-red-contrib-modbus-rtu-0.1.0.tgz
+RUN npm i epr04s-0.1.0.tgz
 RUN npm i epr04s-0.1.0.tgz
 RUN /bin/bash -c 'rm *.tgz'
 
@@ -23,6 +24,3 @@ VOLUME /root/node-red
 EXPOSE 1880
 
 CMD /root/.node-red/start-node-red.sh
-
-
-

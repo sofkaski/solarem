@@ -9,34 +9,36 @@ gulp.task('default', function() {
 });
 
 gulp.task('clean', function() {
-    return del(['solarem']);
+  return del(['solarem']);
 });
 
 gulp.task('docker-source', function() {
-    return gulp.src('docker/*').pipe(gulp.dest('solarem/docker'))
+  return gulp.src('docker/*').pipe(gulp.dest('solarem/docker'))
 });
 
 gulp.task('modbus-rtu', function() {
-    return gulp.src('node-red-contrib-modbus-rtu/*.tgz').pipe(gulp.dest('solarem/docker'))
+  return gulp.src('node-red-contrib-modbus-rtu/*.tgz').pipe(gulp.dest('solarem/docker'))
 });
 
 gulp.task('epr04', function() {
-    return gulp.src('Meter-EPR04/*.tgz').pipe(gulp.dest('solarem/docker'))
+  return gulp.src('Meter-EPR04/*.tgz').pipe(gulp.dest('solarem/docker'))
+});
+
+gulp.task('power-limit-node', function() {
+  return gulp.src('power-limit-node/*.tgz').pipe(gulp.dest('solarem/docker'))
 });
 
 gulp.task('node-red', function() {
-    return gulp.src('node-red/*').pipe(gulp.dest('solarem/docker'))
+  return gulp.src('node-red/*').pipe(gulp.dest('solarem/docker'))
 });
 
-gulp.task('docker', ['docker-source', 'node-red', 'modbus-rtu', 'epr04'], function(done) {
-   var proc =  spawn('docker', ['build', '-t', 'sofkaski/solarem:1.0', 'solarem/docker'], {stdio: 'inherit'});
+gulp.task('docker', ['docker-source', 'node-red', 'modbus-rtu', 'epr04', 'power-limit-node'], function(done) {
+  var proc = spawn('docker', ['build', '-t', 'sofkaski/solarem:1.0', 'solarem/docker'], {
+    stdio: 'inherit'
+  });
 
-   proc.on("close", function(exitCode) {
-       console.log('Process finished with code ' + exitCode);
-       done(exitCode);
-   });
+  proc.on("close", function(exitCode) {
+    console.log('Process finished with code ' + exitCode);
+    done(exitCode);
+  });
 });
-
-
-
-
