@@ -1,15 +1,20 @@
 var gulp = require('gulp');
 var jshint = require('gulp-jshint');
 var htmlmin = require('gulp-htmlmin');
+var hub = require('gulp-hub');
 var spawn = require('child_process').spawn;
 
 gulp.task('default', function() {
   console.log('Usage:');
-  console.log('gulp solarem-docker # builds the whole thing');
+  console.log('gulp docker # builds the whole thing');
 });
 
 gulp.task('clean', function() {
   return del(['solarem']);
+});
+
+gulp.task('publish', function() {
+  console.log('Gulping publish');
 });
 
 gulp.task('docker-source', function() {
@@ -42,3 +47,7 @@ gulp.task('docker', ['docker-source', 'node-red', 'modbus-rtu', 'epr04', 'power-
     done(exitCode);
   });
 });
+
+hub(['./Meter-EPR04/gulpfile.js', './node-red-contrib-modbus-rtu/gulpfile.js',
+  './power-limit-node/gulpfile.js'
+]);
