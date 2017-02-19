@@ -22,10 +22,10 @@
   "homepage": "https://github.com/sofkaski/solarem#readme",
   "dependencies": {
     "modbus-rtu": "^0.1.1",
-    "node-red": "^0.16.2",
-    "node-red-dashboard": "2.2.1",
-    "serialport": "^4.0.7",
-    "sprintf-js": "^1.0.3",
+    "node-red-node-smooth": "^0.0.10",
+    "node-red-dashboard": "2.*",
+    "serialport": "4.*",
+    "sprintf-js": "1.*",
     "tracer": "^0.8.7"
   },
   "devDependencies": {
