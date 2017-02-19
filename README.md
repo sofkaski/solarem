@@ -1,6 +1,6 @@
 # solarem
 Solar energy monitoring and control application based on Node-Red.
-Application is run in a Docker container on Raspberry Pi. 
+Application is run in a Docker container on Raspberry Pi.
 
 Application uses Entes EPR-04S energy meter as the source of used/produced energy data.
 Application controls relays that can be used to switch on and off loads consuming solar energy.
@@ -17,25 +17,17 @@ Application controls relays that can be used to switch on and off loads consumin
 (TBD)
 
 # Building
- * Build first both submodules: 
-    * cd to sub-module directory
-    * gulp publish
-    * npm pack
-    * cd ..
- * Local build:
-   * (TBD)
- * Docker:
-   * gulp docker
- 
-# Installation
- * cd ~
- * Install node-red:
-   * npm install --unsafe-perm node-red
- * cd .node-red
- * Install dashboard:
-   * npm install node-red-dashboard
- * Install node-red-modbus-rtu and epr04 nodes
-   * For both nodes: npm install <path to the tar of the node package in sub-module directory> 
+Docker image build for Rasbpberry:
+ * gulp docker-rpi
 
-# Running locally
- * node-red-pi
+Builds recursively sub-modules and then the docker image
+
+# Installation
+ * Install docker (from [raspberrypi.org](https://www.raspberrypi.org/blog/docker-comes-to-raspberry-pi/)):
+   * curl -sSL https://get.docker.com | sh
+ * make a directory for node-red flow file
+   * cd ~
+   * mkdir solarem
+
+# Running in docker
+ * docker run --name solarem -p1880:1880 -d --cap-add SYS_RAWIO --device /dev/ttyUSB0 --device /dev/mem -v &lt;path to the flow file directory&gt;:/solarem &lt;name of the image&gt;:latest
