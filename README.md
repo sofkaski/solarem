@@ -8,8 +8,8 @@ Application controls relays that can be used to switch on and off loads consumin
 # Requirements
 
 ## Development dependencies
- * Nodejs (4.7.2 or newer)
- * npm (2.15.11 or newer)
+ * Nodejs (8.11.1 or newer)
+ * yarn (1.6.1 or newer)
  * Docker (1.12.5 or newer)
 
 ## Runtime dependencies
@@ -22,7 +22,7 @@ Docker image build for Rasbpberry:
 
 Builds recursively sub-modules and then the docker image
 
-# Installation
+# Installation in RPI
  * Install docker (from [raspberrypi.org](https://www.raspberrypi.org/blog/docker-comes-to-raspberry-pi/)):
    * curl -sSL https://get.docker.com | sh
  * make a directory for node-red flow file

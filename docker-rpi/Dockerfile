@@ -1,8 +1,8 @@
-# Hypriot rpi-node 7.4 used as the base.
-FROM hypriot/rpi-node:7.4
+# Hypriot rpi-node 8.1 used as the base.
+FROM hypriot/rpi-node:8.1
 MAINTAINER sofkaski <jyrkiokaski@gmail.com>
 
-# Install rpi GPIO pyhton modules 
+# Install rpi GPIO pyhton modules
 RUN apt-get update && apt-get install python-rpi.gpio python3-rpi.gpio
 
 # Add node-red user so don't need to run as root.
