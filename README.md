@@ -8,21 +8,18 @@ Application controls relays that can be used to switch on and off loads consumin
 # Requirements
 
 ## Development dependencies
- * Nodejs (4.7.2 or newer)
- * npm (2.15.11 or newer)
+ * Nodejs (8.11.1 or newer)
+ * yarn (1.6.1 or newer)
  * Docker (1.12.5 or newer)
 
-## Runtime dependencies
-
-(TBD)
 
 # Building
-Docker image build for Rasbpberry:
- * gulp docker-rpi
+Docker image build for Raspberry (in Raspberry):
+ * yarn run gulp docker-rpi
 
 Builds recursively sub-modules and then the docker image
 
-# Installation
+# Installation in RPI
  * Install docker (from [raspberrypi.org](https://www.raspberrypi.org/blog/docker-comes-to-raspberry-pi/)):
    * curl -sSL https://get.docker.com | sh
  * make a directory for node-red flow file
@@ -30,4 +27,5 @@ Builds recursively sub-modules and then the docker image
    * mkdir solarem
 
 # Running in docker
- * docker run --name solarem -p1880:1880 -d --cap-add SYS_RAWIO --device /dev/ttyUSB0 --device /dev/mem -v &lt;path to the flow file directory&gt;:/solarem &lt;name of the image&gt;:latest
+ * Example of running
+`docker run --restart unless-stopped --name solarem -p1880:1880 -d --cap-add SYS_RAWIO --device /dev/ttyUSB0 --device /dev/gpiomem -v /home/pi/solarem:/data --log-opt max-size=10m --log-opt max-file=3 --env FLOWS=solarem-flows.json sofkaski/solarem-rpi:1.0`

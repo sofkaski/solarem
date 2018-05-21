@@ -1,33 +1,32 @@
-# Hypriot rpi-node 7.4 used as the base.
-FROM hypriot/rpi-node:7.4
-MAINTAINER sofkaski <jyrkiokaski@gmail.com>
+ARG NODE_VERSION=6
+FROM hypriot/rpi-node:${NODE_VERSION}
 
-# Install rpi GPIO pyhton modules 
-RUN apt-get update && apt-get install python-rpi.gpio python3-rpi.gpio
+# add support for gpio library
+RUN apt-get update
+RUN apt-get install python-rpi.gpio
 
-# Add node-red user so don't need to run as root.
-#RUN groupadd --gid 1001 red \
-#  && useradd --uid 1001 --gid red --shell /bin/bash --create-home red
+# Home directory for Node-RED application source code.
+RUN mkdir -p /usr/src/node-red
 
-#USER red
-RUN mkdir /home/solarem
-WORKDIR /home/solarem
+# User data directory, contains flows, config and nodes.
+RUN mkdir /data
 
-# Install node-red
-RUN npm install node-red
+WORKDIR /usr/src/node-red
 
 # package.json contains Node-RED NPM module and node dependencies
-COPY package.json /home/solarem
+COPY package.json /usr/src/node-red/
 RUN npm install
 
 # Install modbus-RTU, EPR and power limit modules from solarem
-COPY *.tgz /home/solarem/
-RUN npm i node-red-contrib-modbus-rtu-0.1.0.tgz epr04s-0.1.0.tgz node-red-contrib-power-limit-0.1.0.tgz
+COPY *.tgz ./
+RUN npm i node-red-contrib-modbus-rtu-v0.1.2.tgz epr04s-v0.1.1.tgz node-red-contrib-power-limit-v0.1.0.tgz
 RUN /bin/bash -c 'rm *.tgz'
 
-# User configuration directory volume
-RUN mkdir /home/solarem/flows
-VOLUME ["/home/solarem/flows"]
+# expose port
 EXPOSE 1880
 
-CMD ["./node_modules/node-red/bin/node-red-pi", "./flows/solarem-flows.json"]
+# Environment variable holding file path for flows configuration
+ENV FLOWS=flows.json
+ENV NODE_PATH=/usr/src/node-red/node_modules:/data/node_modules
+
+CMD ["npm", "start", "--", "--userDir", "/data"]
