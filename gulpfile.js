@@ -55,7 +55,7 @@ gulp.task('solarem', ['flows', 'settings', 'node-red', 'modbus-rtu', 'epr04', 'p
 
 gulp.task('docker-rpi', ['docker-source-rpi', 'solarem'], function(
     done) {
-    var proc = spawn('docker', ['build', '-t', 'sofkaski/solarem-rpi:1.1', 'solarem/docker'], {
+    var proc = spawn('docker', ['build', '-t', 'sofkaski/solarem-rpi:1.1.1', 'solarem/docker'], {
         stdio: 'inherit'
     });
 
@@ -66,7 +66,7 @@ gulp.task('docker-rpi', ['docker-source-rpi', 'solarem'], function(
 });
 
 gulp.task('docker', ['docker-source', 'solarem'], function(done) {
-    var proc = spawn('docker', ['build', '-t', 'sofkaski/solarem:1.1', 'solarem/docker'], {
+    var proc = spawn('docker', ['build', '-t', 'sofkaski/solarem:1.1.1', 'solarem/docker'], {
         stdio: 'inherit'
     });
 

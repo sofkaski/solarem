@@ -19,7 +19,7 @@ RUN npm install
 
 # Install modbus-RTU, EPR and power limit modules from solarem
 COPY *.tgz ./
-RUN npm i node-red-contrib-modbus-rtu-v0.1.2.tgz epr04s-v0.1.1.tgz node-red-contrib-power-limit-v0.1.0.tgz
+RUN npm i node-red-contrib-modbus-rtu-v0.1.2.tgz epr04s-v0.1.1.tgz node-red-contrib-power-limit-v0.1.1.tgz
 RUN /bin/bash -c 'rm *.tgz'
 
 # expose port

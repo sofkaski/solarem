@@ -1,6 +1,6 @@
 {
     "name": "solarem",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "description": "Solar energy monitoring and control application",
     "main": "index.js",
     "scripts": {
